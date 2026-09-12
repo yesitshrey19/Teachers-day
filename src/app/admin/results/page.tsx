@@ -6,6 +6,7 @@ import ResultsChart from '@/components/ResultsChart';
 import PollControl from '@/components/PollControl';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { ADMIN_RESULTS_REALTIME_TABLES } from '@/lib/utils';
 
 export default function AdminResultsPage() {
   const router = useRouter();
@@ -39,20 +40,28 @@ export default function AdminResultsPage() {
     fetchResults();
 
     const supabase = createClient();
-    
-    // Subscribe to realtime changes on votes and duo_votes tables
+
     const channel = supabase
       .channel('poll-results-channel')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, () => {
-        fetchResults();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'duo_votes' }, () => {
-        fetchResults();
-      })
-      .subscribe();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, () => fetchResults())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'duo_votes' }, () => fetchResults())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'other_mappings' }, () => fetchResults())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'poll_config' }, () => fetchResults())
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('Realtime channel error; falling back to polling refresh.');
+        }
+      });
+
+    const timer = globalThis.setInterval(() => {
+      fetchResults();
+    }, 2500);
 
     return () => {
-      supabase.removeChannel(channel);
+      globalThis.clearInterval(timer);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [router]);
 

@@ -21,6 +21,13 @@ export function isDuoQuestion(index: number): boolean {
   return index === DUO_QUESTION_INDEX;
 }
 
+export const ADMIN_RESULTS_REALTIME_TABLES = [
+  'votes',
+  'duo_votes',
+  'other_mappings',
+  'poll_config'
+];
+
 export function calculatePercentage(count: number, total: number): number {
   if (total === 0) return 0;
   return Number(((count / total) * 100).toFixed(1));

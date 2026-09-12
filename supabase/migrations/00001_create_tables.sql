@@ -87,6 +87,49 @@ CREATE INDEX idx_votes_question_index ON votes(question_index);
 CREATE INDEX idx_duo_votes_created_at ON duo_votes(created_at);
 CREATE INDEX idx_other_mappings_table_vote ON other_mappings(table_name, vote_id);
 
+-- Enable Supabase realtime publication for all admin result sources
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_publication
+    WHERE pubname = 'supabase_realtime'
+  ) THEN
+    CREATE PUBLICATION supabase_realtime;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE votes;
+  EXCEPTION
+    WHEN duplicate_object THEN
+      NULL;
+  END;
+
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE duo_votes;
+  EXCEPTION
+    WHEN duplicate_object THEN
+      NULL;
+  END;
+
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE other_mappings;
+  EXCEPTION
+    WHEN duplicate_object THEN
+      NULL;
+  END;
+
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE poll_config;
+  EXCEPTION
+    WHEN duplicate_object THEN
+      NULL;
+  END;
+END $$;
+
 -- Insert initial poll_config row
 INSERT INTO poll_config (id, is_open) VALUES (1, true)
 ON CONFLICT (id) DO NOTHING;
