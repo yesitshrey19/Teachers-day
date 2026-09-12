@@ -68,7 +68,7 @@ export async function POST(request: Request) {
 
         if (insertError) {
           console.error('Error inserting duo vote:', insertError);
-          continue;
+          return NextResponse.json({ success: false, error: 'Database error: ' + insertError.message } as ApiResponse, { status: 500 });
         }
 
         if (duoAnswer.isOther && insertedVote) {
@@ -92,7 +92,7 @@ export async function POST(request: Request) {
 
         if (insertError) {
           console.error('Error inserting vote:', insertError);
-          continue;
+          return NextResponse.json({ success: false, error: 'Database error: ' + insertError.message } as ApiResponse, { status: 500 });
         }
 
         if (standardAnswer.isOther && insertedVote) {
