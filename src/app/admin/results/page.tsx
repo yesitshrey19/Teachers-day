@@ -5,6 +5,7 @@ import { AdminResultsResponse, QuestionResult } from '@/lib/types';
 import ResultsChart from '@/components/ResultsChart';
 import PollControl from '@/components/PollControl';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 
 export default function AdminResultsPage() {
   const router = useRouter();
@@ -36,6 +37,23 @@ export default function AdminResultsPage() {
 
   useEffect(() => {
     fetchResults();
+
+    const supabase = createClient();
+    
+    // Subscribe to realtime changes on votes and duo_votes tables
+    const channel = supabase
+      .channel('poll-results-channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, () => {
+        fetchResults();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'duo_votes' }, () => {
+        fetchResults();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [router]);
 
   const handleTogglePoll = async (action: 'open' | 'close') => {
