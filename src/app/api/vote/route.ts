@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient, createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { ApiResponse, VoteSubmission, DuoVoteAnswer } from '@/lib/types';
 import { isDuoQuestion } from '@/lib/utils';
 import { cookies } from 'next/headers';
@@ -16,10 +16,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const anonClient = await createClient();
     const adminClient = createAdminClient();
 
-    const { data: settings, error: settingsError } = await anonClient
+    // Use adminClient to bypass RLS for poll_config check
+    const { data: settings, error: settingsError } = await adminClient
       .from('poll_config')
       .select('is_open')
       .single();
