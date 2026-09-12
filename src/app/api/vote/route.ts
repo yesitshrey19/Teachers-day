@@ -56,7 +56,7 @@ export async function POST(request: Request) {
 
       if (isDuoQuestion(answer.questionIndex)) {
         const duoAnswer = answer as DuoVoteAnswer;
-        const { data: insertedVote, error: insertError } = await anonClient
+        const { data: insertedVote, error: insertError } = await adminClient
           .from('duo_votes')
           .insert({
             faculty_1: duoAnswer.faculty1,
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
         }
       } else {
         const standardAnswer = answer as any;
-        const { data: insertedVote, error: insertError } = await anonClient
+        const { data: insertedVote, error: insertError } = await adminClient
           .from('votes')
           .insert({
             question_index: standardAnswer.questionIndex,
