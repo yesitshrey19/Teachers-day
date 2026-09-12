@@ -211,3 +211,4 @@ Your Supabase project is already cloud-hosted. Make sure:
 
 Private project. Not for public distribution.
 # POLL
+# Teachers-day
